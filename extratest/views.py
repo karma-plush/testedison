@@ -2,7 +2,6 @@ from django.shortcuts import render
 from django.views import View
 from .extrasense import Extrasense
 
-
 class MainView(View):
 
     def get(self, request, *args, **kwargs):
@@ -20,6 +19,7 @@ class MainView(View):
         request.session['ex2_nums'] = ex2.numbers
         request.session['ex1_rating'] = ex1.rating
         request.session['ex2_rating'] = ex2.rating
+        
         if 'mynums' not in request.session:
             request.session['mynums'] = []
         
