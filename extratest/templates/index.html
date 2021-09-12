@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Экстрасенсы</title>
+</head>
+<body>
+    <h1>Загадайте двухзначное число и нажмите кнопку</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="submit" name="ready" value="Загадал">
+    </form>
+
+    <div>
+        <h2>Первый экстрасенс: </h2>
+        <b>Его ответы:</b><br>
+        <span>
+        {% for n in ex1_nums %}
+        {{n}}
+        {% endfor %}
+        </span><br>
+        <b>Его рейтинг:</b><br>
+        <span>{{ ex1_rating }}</span>
+    </div>
+
+    <div>
+        <h2>Второй экстрасенс: </h2>
+        <b>Его ответы:</b><br>
+        <span>
+        {% for n in ex2_nums %}
+        {{n}}
+        {% endfor %}
+        </span><br>
+        <b>Его рейтинг:</b><br>
+        <span>{{ ex2_rating }}</span>
+    </div>
+
+    <div>
+        <h2>Я загадывал:</h2>
+        {% for n in mynums %}
+        {{ n }}
+        {% endfor %}
+    </div>
+
+</body>
+</html>
