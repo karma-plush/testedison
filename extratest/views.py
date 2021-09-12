@@ -5,78 +5,98 @@ from .extrasense import Extrasense
 
 class MainView(View):
 
-    ex1 = Extrasense()
-    ex2 = Extrasense()
-    mynums = []
-
     def get(self, request, *args, **kwargs):
 
-        request.session.set_expiry(0)
+        ex1 = Extrasense(
+            numbers=request.session.get('ex1_nums') or [],
+            rating=request.session.get('ex1_rating') or 0,
+        )
+        ex2 = Extrasense(
+            numbers=request.session.get('ex2_nums') or [],
+            rating=request.session.get('ex2_rating')  or 0,
+        )
 
-        request.session['ex1_nums'] = self.ex1.numbers
-        request.session['ex2_nums'] = self.ex2.numbers
-        request.session['ex1_rating'] = self.ex1.rating
-        request.session['ex2_rating'] = self.ex2.rating
-        request.session['mynums'] = self.mynums
+        request.session['ex1_nums'] = ex1.numbers
+        request.session['ex2_nums'] = ex2.numbers
+        request.session['ex1_rating'] = ex1.rating
+        request.session['ex2_rating'] = ex2.rating
+        if 'mynums' not in request.session:
+            request.session['mynums'] = []
         
         return render(request, 'index.html', context={
-            'ex1_nums':  request.session['ex1_nums'],
-            'ex2_nums': request.session['ex2_nums'],
-            'ex1_rating': request.session['ex1_rating'],
-            'ex2_rating': request.session['ex2_rating'],
+            'ex1_nums':  ex1.numbers,
+            'ex2_nums': ex2.numbers,
+            'ex1_rating': ex1.rating,
+            'ex2_rating': ex2.rating,
             'mynums': request.session['mynums']
         })
 
     def post(self, request, *args, **kwargs):
 
         if 'ready' in request.POST:
-            self.ex1.new_number()
-            self.ex2.new_number()
-            self.mynums.append('-')
+
+            ex1 = Extrasense(
+                numbers=request.session.get('ex1_nums'),
+                rating=request.session.get('ex1_rating'),
+            )
+            ex2 = Extrasense(
+                numbers=request.session.get('ex2_nums'),
+                rating=request.session.get('ex2_rating'),
+            )
+
+            ex1.new_number()
+            ex2.new_number()
+            request.session['mynums'].append('-')
           
-            request.session['ex1_nums'] = self.ex1.numbers
-            request.session['ex2_nums'] = self.ex2.numbers
-            request.session['mynums'] = self.mynums
+            request.session['ex1_nums'] = ex1.numbers
+            request.session['ex2_nums'] = ex2.numbers
+        
             request.session.modified = True
 
             return render(request, 'index2.html', context={
-                'ex1_nums':  request.session['ex1_nums'],
-                'ex2_nums': request.session['ex2_nums'],
-                'ex1_rating': request.session['ex1_rating'],
-                'ex2_rating': request.session['ex2_rating'],
+                'ex1_nums':  ex1.numbers,
+                'ex2_nums': ex2.numbers,
+                'ex1_rating': ex1.rating,
+                'ex2_rating': ex2.rating,
                 'mynums': request.session['mynums']
             })
 
         if 'entered' in request.POST:
 
+            ex1 = Extrasense(
+                numbers=request.session.get('ex1_nums'),
+                rating=request.session.get('ex1_rating'),
+            )
+            ex2 = Extrasense(
+                numbers=request.session.get('ex2_nums'),
+                rating=request.session.get('ex2_rating'),
+            )
+
             number = int(request.POST.get('my_number'))
 
-            self.mynums[-1] = number
-
-            request.session['mynums'] = self.mynums
+            request.session['mynums'][-1] = number
             request.session.modified = True
 
-            if number == self.ex1.last_number():
-                self.ex1.rateup()
-                self.ex2.ratedown()
-            elif number == self.ex2.last_number():
-                self.ex2.rateup()
-                self.ex1.ratedown()
+            if number == ex1.last_number():
+                ex1.rateup()
+                ex2.ratedown()
+            elif number == ex2.last_number():
+                ex2.rateup()
+                ex1.ratedown()
             else:
-                self.ex1.ratedown()
-                self.ex2.ratedown()
+                ex1.ratedown()
+                ex2.ratedown()
 
-            request.session['ex1_nums'] = self.ex1.numbers
-            request.session['ex2_nums'] = self.ex2.numbers
-            request.session['ex1_rating'] = self.ex1.rating
-            request.session['ex2_rating'] = self.ex2.rating
-            request.session['mynums'] = self.mynums
+            request.session['ex1_nums'] = ex1.numbers
+            request.session['ex2_nums'] = ex2.numbers
+            request.session['ex1_rating'] = ex1.rating
+            request.session['ex2_rating'] = ex2.rating
             request.session.modified = True
 
             return render(request, 'index.html', context={
-                'ex1_nums':  request.session['ex1_nums'],
-                'ex2_nums': request.session['ex2_nums'],
-                'ex1_rating': request.session['ex1_rating'],
-                'ex2_rating': request.session['ex2_rating'],
+                'ex1_nums':  ex1.numbers,
+                'ex2_nums': ex2.numbers,
+                'ex1_rating': ex1.rating,
+                'ex2_rating': ex2.rating,
                 'mynums': request.session['mynums']
             })

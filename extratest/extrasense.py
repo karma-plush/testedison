@@ -14,6 +14,6 @@ class Extrasense:
     def last_number(self) -> int:
         return self.numbers[-1]
 
-    def __init__(self) -> None:
-        self.numbers = []
-        self.rating = 0
+    def __init__(self, numbers = [], rating = 0) -> None:
+        self.numbers = numbers
+        self.rating = rating
