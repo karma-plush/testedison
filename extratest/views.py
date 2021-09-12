@@ -77,7 +77,10 @@ class MainView(View):
             request.session['mynums'][-1] = number
             request.session.modified = True
 
-            if number == ex1.last_number():
+            if number == ex1.last_number() and number == ex2.last_number():
+                ex1.rateup()
+                ex2.rateup()
+            elif number == ex1.last_number():
                 ex1.rateup()
                 ex2.ratedown()
             elif number == ex2.last_number():
