@@ -113,7 +113,7 @@ class SessionStorage(Storage):
             extrasense_list.add_extrasense_to_begin(ex)
         return extrasense_list
 
-    def load_my_numbers(self, session_key: str) -> list[int]:
+    def load_my_numbers(self, session_key: str) -> list:
         return self.storage[session_key]['my_numbers']
 
 
