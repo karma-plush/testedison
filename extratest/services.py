@@ -2,8 +2,6 @@ import random
 import json
 from abc import ABC, abstractmethod
 
-from django.http.response import HttpResponse, HttpResponseRedirect
-
 
 class Extrasense:
     """Класс реализующий экстрасенса"""
