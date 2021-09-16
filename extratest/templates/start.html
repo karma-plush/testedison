@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <title>Начать игру</title>
+</head>
+<body>
+    <div class="flex flex-col justify-center items-cetner w-full h-screen bg-gray-100 p-8 space-y-6">
+        <div class="flex justify-center items-cetner text-3xl font-semibold">Введите кол-во экстрасенсов, которые будут участвовать в тесте</div>
+        <form class="flex justify-center items-cetner space-x-2" method="POST">
+            {% csrf_token %}
+            <input
+            class="text-2xl p-4 w-1/3 rounded font-semibold border border-gray-300 focus:border-2"
+            type="number" min="2" max="10" name="num_of_extrasenses"
+            placeholder="Введите число (2...10)">
+            <button
+            class="
+            text-2xl p-4 rounded font-semibold
+            bg-gray-300 hover:bg-green-500 duration-300
+            hover:text-white transition-all" type="submit">Начать!</button>
+        </form>
+    </div>
+</body>
+</html>

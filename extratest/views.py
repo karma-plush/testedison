@@ -1,105 +1,109 @@
-from django.shortcuts import render
+from django.http.response import HttpResponseRedirect
+from django.shortcuts import render 
 from django.views import View
-from .extrasense import Extrasense
+from django.urls import reverse
+from extratest.services import (ExtracenseList, SessionStorage)
 
-class MainView(View):
 
-    def get(self, request, *args, **kwargs):
+session_store = SessionStorage()
 
-        ex1 = Extrasense(
-            numbers=request.session.get('ex1_nums') or [],
-            rating=request.session.get('ex1_rating') or 0,
-        )
-        ex2 = Extrasense(
-            numbers=request.session.get('ex2_nums') or [],
-            rating=request.session.get('ex2_rating')  or 0,
-        )
+class ChooseNumberOfExtrasensesView(View):
 
-        request.session['ex1_nums'] = ex1.numbers
-        request.session['ex2_nums'] = ex2.numbers
-        request.session['ex1_rating'] = ex1.rating
-        request.session['ex2_rating'] = ex2.rating
+    def get(self, request):
+        return render(request, 'start.html')
+    
+    def post(self, request):
         
-        if 'mynums' not in request.session:
-            request.session['mynums'] = []
-        
-        return render(request, 'index.html', context={
-            'ex1_nums':  ex1.numbers,
-            'ex2_nums': ex2.numbers,
-            'ex1_rating': ex1.rating,
-            'ex2_rating': ex2.rating,
-            'mynums': request.session['mynums']
-        })
-
-    def post(self, request, *args, **kwargs):
-
-        if 'ready' in request.POST:
-
-            ex1 = Extrasense(
-                numbers=request.session.get('ex1_nums'),
-                rating=request.session.get('ex1_rating'),
-            )
-            ex2 = Extrasense(
-                numbers=request.session.get('ex2_nums'),
-                rating=request.session.get('ex2_rating'),
+        list_of_extrasenses = ExtracenseList()
+        list_of_extrasenses.create_n_extrasenses_in_list(
+            n = int(request.POST.get("num_of_extrasenses", 2))
+        )
+        session_store.save(
+            session_key = request.session.session_key,
+            extrasense_list = list_of_extrasenses,
+            my_numbers = []
             )
 
-            ex1.new_number()
-            ex2.new_number()
-            request.session['mynums'].append('-')
-          
-            request.session['ex1_nums'] = ex1.numbers
-            request.session['ex2_nums'] = ex2.numbers
-        
-            request.session.modified = True
+        return HttpResponseRedirect(reverse('maingame_first_window_url'))
 
-            return render(request, 'index2.html', context={
-                'ex1_nums':  ex1.numbers,
-                'ex2_nums': ex2.numbers,
-                'ex1_rating': ex1.rating,
-                'ex2_rating': ex2.rating,
-                'mynums': request.session['mynums']
+class MainGameFirstWindowView(View):
+    
+    def get(self, request):
+
+        try:
+            extrasense_list = session_store.load_extrasense(request.session.session_key)
+            my_numbers = session_store.load_my_numbers(request.session.session_key)
+        except KeyError:
+            return HttpResponseRedirect(reverse('start_url'))
+
+        ctx = { 'extrasenses' : [], 'my_numbers': my_numbers }
+
+        for ex in extrasense_list:
+            ctx['extrasenses'].append({
+                'numbers' : ex.numbers,
+                'rating' : ex.rating
+            })
+        
+        return  render(request, 'index.html', context=ctx)
+
+    def post(self, request):
+
+        try:
+            extrasense_list = session_store.load_extrasense(request.session.session_key)
+            my_numbers = session_store.load_my_numbers(request.session.session_key)
+        except KeyError:
+            return HttpResponseRedirect(reverse('start_url'))
+
+        for ex in extrasense_list:
+           ex.new_number()
+        
+        session_store.save(
+            session_key = request.session.session_key,
+            extrasense_list = extrasense_list,
+            my_numbers = my_numbers
+            )
+
+        return HttpResponseRedirect(reverse('maingame_second_window_url'))
+
+
+class MainGameSecondWindowView(View):
+    
+    def get(self, request):
+
+        try:
+            extrasense_list = session_store.load_extrasense(request.session.session_key)
+            my_numbers = session_store.load_my_numbers(request.session.session_key)
+        except KeyError:
+            return HttpResponseRedirect(reverse('start_url'))
+
+        ctx = { 'extrasenses' : [], 'my_numbers': my_numbers }
+
+        for ex in extrasense_list:
+            ctx['extrasenses'].append({
+                'numbers' : ex.numbers,
+                'rating' : ex.rating
             })
 
-        if 'entered' in request.POST:
+        return render(request, 'index2.html', context=ctx)
 
-            ex1 = Extrasense(
-                numbers=request.session.get('ex1_nums'),
-                rating=request.session.get('ex1_rating'),
+    def post(self, request):
+
+        entered_number = int(request.POST.get('my_number'))
+        
+        try:
+            extrasense_list = session_store.load_extrasense(request.session.session_key)
+            my_numbers = session_store.load_my_numbers(request.session.session_key)
+        except KeyError:
+            return HttpResponseRedirect(reverse('start_url'))
+
+        for ex in extrasense_list:
+           ex.check_last_number(entered_number)
+        my_numbers.append(entered_number)
+
+        session_store.save(
+            session_key = request.session.session_key,
+            extrasense_list = extrasense_list,
+            my_numbers = my_numbers
             )
-            ex2 = Extrasense(
-                numbers=request.session.get('ex2_nums'),
-                rating=request.session.get('ex2_rating'),
-            )
 
-            number = int(request.POST.get('my_number'))
-
-            request.session['mynums'][-1] = number
-            request.session.modified = True
-
-            if number == ex1.last_number() and number == ex2.last_number():
-                ex1.rateup()
-                ex2.rateup()
-            elif number == ex1.last_number():
-                ex1.rateup()
-                ex2.ratedown()
-            elif number == ex2.last_number():
-                ex2.rateup()
-                ex1.ratedown()
-            else:
-                ex1.ratedown()
-                ex2.ratedown()
-
-            request.session['ex1_nums'] = ex1.numbers
-            request.session['ex2_nums'] = ex2.numbers
-            request.session['ex1_rating'] = ex1.rating
-            request.session['ex2_rating'] = ex2.rating
-            request.session.modified = True
-
-            return render(request, 'index.html', context={
-                'ex1_nums':  ex1.numbers,
-                'ex2_nums': ex2.numbers,
-                'ex1_rating': ex1.rating,
-                'ex2_rating': ex2.rating,
-                'mynums': request.session['mynums']
-            })
+        return HttpResponseRedirect(reverse('maingame_first_window_url'))
