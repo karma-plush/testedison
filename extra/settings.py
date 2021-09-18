@@ -1,9 +1,5 @@
 from pathlib import Path
-from importlib import import_module
-from django.conf import settings
-from extratest.services import ExtrasenseStorage
-
-DjangoSessionStore = import_module(settings.SESSION_ENGINE).SessionStore
+from extratest.services import DjangoSessionStore
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
