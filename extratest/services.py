@@ -2,6 +2,10 @@ import random
 import json
 from abc import ABC, abstractmethod
 
+from importlib import import_module
+from django.conf import settings
+
+DjangoSessionStore = import_module(settings.SESSION_ENGINE).SessionStore
 
 class Extrasense:
     """Класс реализующий экстрасенса"""
@@ -77,49 +81,48 @@ class ExtrasenseListJsonEncoder(json.JSONEncoder):
 
 
 class Storage(ABC):
-    """Абстрактный класс хранилища данных"""
+    """Абстрактный класс, реализующий сохранение состояния"""
     def __init__(self) -> None:
+        self.session_key = ""
         super().__init__()
 
     @abstractmethod
-    def save(self, extrasense_list: ExtracenseList) -> None:
+    def save(self, extrasense_list: ExtracenseList, my_numbers: list) -> None:
         pass
 
     @abstractmethod
-    def load_extrasense(self) -> ExtracenseList:
+    def load(self) -> dict:
         pass
 
 
-class SessionStorage(Storage):
-    """Класс, реализующий хранилище сессиий"""
-
-    def __init__(self) -> None:
-        self.storage = {}
+class ExtrasenseStorage(Storage):
+    """Класс, реализующий сохранение состояния"""
+ 
+    def __init__(self, session_key) -> None:
+        self.session_key = session_key
+        self.storage = StorageFactory.create_storage(session_key)
         super().__init__()
     
-    def save(self, session_key: str, extrasense_list: ExtracenseList, my_numbers: list) -> None:
-        jsoned_str = json.dumps(extrasense_list, cls=ExtrasenseListJsonEncoder)
-        if session_key not in self.storage:
-            self.storage[session_key] = {}
-        self.storage[session_key]['my_numbers'] = my_numbers
-        self.storage[session_key]['extrasense_list'] = jsoned_str
+    def save(self, extrasense_list: ExtracenseList, my_numbers: list) -> None:
+        jsoned_list = json.dumps(extrasense_list, cls=ExtrasenseListJsonEncoder)
+        self.storage['extrasense_list'] = jsoned_list
+        self.storage['my_numbers'] = my_numbers
+        self.storage.save()
 
-    def load_extrasense(self, session_key: str) -> ExtracenseList:
-        jsoned_str = self.storage[session_key]['extrasense_list']
-        jsoned_list_of_extrasenses = json.loads(jsoned_str)
+    def load(self) -> dict:
+        jsoned_list = json.loads(self.storage['extrasense_list'])
         extrasense_list = ExtracenseList()
-        for ex_dict in jsoned_list_of_extrasenses:
+        for ex_dict in jsoned_list:
             ex = Extrasense(numbers = ex_dict['numbers'], rating = ex_dict['rating'])
             extrasense_list.add_extrasense_to_begin(ex)
-        return extrasense_list
+        return {
+            'extrasense_list' : extrasense_list,
+            'my_numbers': self.storage['my_numbers']
+            }
 
-    def load_my_numbers(self, session_key: str) -> list:
-        return self.storage[session_key]['my_numbers']
 
+class StorageFactory:
 
-"""
-Каюсь, не так понял последний пункт код-ревью и осознал это только перед тем, как доделал задачу.
-Получилось так, что я сделал свой SessionStorage, а не использовал Django'вский, как это
-подразумевалось в задании. Если такое решение не подходит, то без проблем перепишу
-на Django SessionStorage
-"""
+    @classmethod
+    def create_storage(cls, session_key):
+        return settings.STORAGE(session_key)
