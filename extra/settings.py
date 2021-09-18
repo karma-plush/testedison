@@ -7,9 +7,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-oa+y#x+pltokyi5n$n+$bk**y(cl1!q9er(iwer)i3ltaft3_1'
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['80.249.147.193']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -88,3 +88,9 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STORAGE = import_module(s.SESSION_ENGINE).SessionStore
+
+class StorageFactory:
+
+    @classmethod
+    def create_storage(cls, session_key):
+        return STORAGE(session_key)

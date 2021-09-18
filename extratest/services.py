@@ -1,6 +1,7 @@
 import random
 import json
 from abc import ABC, abstractmethod
+from django.conf import settings as s
 
 
 class Extrasense:
@@ -96,7 +97,7 @@ class ExtrasenseStorage(Storage):
  
     def __init__(self, session_key) -> None:
         self.session_key = session_key
-        self.storage = StorageFactory.create_storage(session_key)
+        self.storage = s.StorageFactory.create_storage(session_key)
         super().__init__()
     
     def save(self, extrasense_list: ExtracenseList, my_numbers: list) -> None:
@@ -115,10 +116,3 @@ class ExtrasenseStorage(Storage):
             'extrasense_list' : extrasense_list,
             'my_numbers': self.storage['my_numbers']
             }
-
-
-class StorageFactory:
-
-    @classmethod
-    def create_storage(cls, session_key):
-        return settings.STORAGE(session_key)
