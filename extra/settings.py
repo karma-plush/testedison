@@ -1,5 +1,7 @@
 from pathlib import Path
-from extratest.services import DjangoSessionStore
+from importlib import import_module
+from django.conf import settings as s
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -85,4 +87,4 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STORAGE = DjangoSessionStore
+STORAGE = import_module(s.SESSION_ENGINE).SessionStore

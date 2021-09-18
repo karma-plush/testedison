@@ -2,10 +2,6 @@ import random
 import json
 from abc import ABC, abstractmethod
 
-from importlib import import_module
-from django.conf import settings
-
-DjangoSessionStore = import_module(settings.SESSION_ENGINE).SessionStore
 
 class Extrasense:
     """Класс реализующий экстрасенса"""
