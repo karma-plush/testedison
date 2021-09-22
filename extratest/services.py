@@ -1,7 +1,5 @@
 import random
 import json
-from abc import ABC, abstractmethod
-from extra.settings import StorageFactory
 
 class Extrasense:
     """Класс реализующий экстрасенса"""
@@ -74,44 +72,3 @@ class ExtrasenseListJsonEncoder(json.JSONEncoder):
                 jsoned_list.insert(0, { 'numbers': ex.numbers, 'rating': ex.rating })
             return jsoned_list
         return super().default(o)
-
-
-class Storage(ABC):
-    """Абстрактный класс, реализующий сохранение состояния"""
-    def __init__(self) -> None:
-        self.session_key = ""
-        super().__init__()
-
-    @abstractmethod
-    def save(self, extrasense_list: ExtracenseList, my_numbers: list) -> None:
-        pass
-
-    @abstractmethod
-    def load(self) -> dict:
-        pass
-
-
-class ExtrasenseStorage(Storage):
-    """Класс, реализующий сохранение состояния"""
- 
-    def __init__(self, session_key) -> None:
-        self.session_key = session_key
-        self.storage = StorageFactory.create_storage(session_key)
-        super().__init__()
-    
-    def save(self, extrasense_list: ExtracenseList, my_numbers: list) -> None:
-        jsoned_list = json.dumps(extrasense_list, cls=ExtrasenseListJsonEncoder)
-        self.storage['extrasense_list'] = jsoned_list
-        self.storage['my_numbers'] = my_numbers
-        self.storage.save()
-
-    def load(self) -> dict:
-        jsoned_list = json.loads(self.storage['extrasense_list'])
-        extrasense_list = ExtracenseList()
-        for ex_dict in jsoned_list:
-            ex = Extrasense(numbers = ex_dict['numbers'], rating = ex_dict['rating'])
-            extrasense_list.add_extrasense_to_begin(ex)
-        return {
-            'extrasense_list' : extrasense_list,
-            'my_numbers': self.storage['my_numbers']
-            }

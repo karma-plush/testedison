@@ -3,7 +3,8 @@ from django.shortcuts import render
 from django.views import View
 from django.urls import reverse
 
-from extratest.services import ExtracenseList, ExtrasenseStorage
+from extratest.services import ExtracenseList
+from extratest.storage_factory import store
 
 
 class ChooseNumberOfExtrasensesView(View):
@@ -16,7 +17,6 @@ class ChooseNumberOfExtrasensesView(View):
         return render(request, 'start.html')
     
     def post(self, request):
-        store = ExtrasenseStorage(request.session.session_key)
 
         list_of_extrasenses = ExtracenseList()
         list_of_extrasenses.create_n_extrasenses_in_list(
@@ -24,6 +24,7 @@ class ChooseNumberOfExtrasensesView(View):
         )
         try:
             store.save(
+                session_key = request.session.session_key,
                 extrasense_list = list_of_extrasenses,
                 my_numbers = []
                 )
@@ -35,8 +36,7 @@ class ChooseNumberOfExtrasensesView(View):
 class MainGameFirstWindowView(View):
     
     def get(self, request):
-        store = ExtrasenseStorage(request.session.session_key)
-        payload = store.load()
+        payload = store.load(session_key = request.session.session_key)
 
         ctx = {
             'extrasenses' : [],
@@ -52,9 +52,8 @@ class MainGameFirstWindowView(View):
         return  render(request, 'index.html', context=ctx)
 
     def post(self, request):
-        store = ExtrasenseStorage(request.session.session_key)
         try:
-            payload = store.load()
+            payload = store.load(session_key = request.session.session_key)
         except KeyError:
             return HttpResponseRedirect(reverse('start_url'))
 
@@ -63,6 +62,7 @@ class MainGameFirstWindowView(View):
 
         try:
             store.save(
+                session_key = request.session.session_key,
                 extrasense_list = payload['extrasense_list'],
                 my_numbers = payload['my_numbers']
                 )
@@ -77,13 +77,10 @@ class MainGameSecondWindowView(View):
     
     def get(self, request):
 
-        store = ExtrasenseStorage(request.session.session_key)
-
         try:
-            payload = store.load()
+            payload = store.load(session_key = request.session.session_key)
         except KeyError:
             return HttpResponseRedirect(reverse('start_url'))
-
 
         ctx = {
             'extrasenses' : [],
@@ -99,12 +96,11 @@ class MainGameSecondWindowView(View):
         return render(request, 'index2.html', context=ctx)
 
     def post(self, request):
+
         entered_number = int(request.POST.get('my_number'))
         
-        store = ExtrasenseStorage(request.session.session_key)
-
         try:
-            payload = store.load()
+            payload = store.load(session_key = request.session.session_key)
         except KeyError:
             return HttpResponseRedirect(reverse('start_url'))
 
@@ -115,6 +111,7 @@ class MainGameSecondWindowView(View):
 
         try:
             store.save(
+                session_key = request.session.session_key,
                 extrasense_list = payload['extrasense_list'],
                 my_numbers = payload['my_numbers']
                 )

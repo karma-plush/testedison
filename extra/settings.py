@@ -1,6 +1,7 @@
 from pathlib import Path
 from importlib import import_module
 from django.conf import settings as s
+from django.core.cache import cache
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -87,10 +88,6 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STORAGE = import_module(s.SESSION_ENGINE).SessionStore
+IMPLEMENTED_STORAGES_LIST = ['DjangoSessions', 'cache']
 
-class StorageFactory:
-
-    @classmethod
-    def create_storage(cls, session_key):
-        return STORAGE(session_key)
+STORAGE = IMPLEMENTED_STORAGES_LIST[0]
